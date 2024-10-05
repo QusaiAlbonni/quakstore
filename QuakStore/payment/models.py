@@ -12,7 +12,7 @@ class Payment():
 
 
 class PaymentDetails(models.Model):
-    stripe_id = models.CharField(max_length=254, unique=True)
+    customer_id = models.CharField(max_length=254, unique=True)
 
     user = models.OneToOneField(
         User, related_name='customer', on_delete=models.CASCADE)
@@ -24,7 +24,7 @@ class Payment(models.Model):
         SUCCESS= 'success', 'Success'
         REFUNDED= 'refunded', 'Refunded'
         
-    order= models.ForeignKey(Order, on_delete=models.SET_NULL)
+    order= models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)
     payment_method_id= models.CharField(max_length=254)
     transaction_id= models.CharField(max_length=254)
     amount= models.PositiveBigIntegerField()

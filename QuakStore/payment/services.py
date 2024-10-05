@@ -36,7 +36,7 @@ class StripePaymentService:
             return data
         try:
             payment_methods= stripe.PaymentMethod.list(
-                customer=payment_details.stripe_id
+                customer=payment_details.customer_id
             )
             for method in payment_methods['data']:
                 data.append(method.to_dict())
@@ -57,7 +57,7 @@ class StripePaymentService:
 
         if payment_details:
             try:
-                return self.stripe.Customer.retrieve(payment_details.stripe_id)
+                return self.stripe.Customer.retrieve(payment_details.customer_id)
             except self.stripe.error.InvalidRequestError:
                 return self._create_customer_with_details(user, payment_details)
         return self._create_customer_with_details(user)
@@ -65,10 +65,10 @@ class StripePaymentService:
     def _create_customer_with_details(self, user, payment_details=None):
         customer = self._create_customer(user)
         if payment_details:
-            payment_details.stripe_id = customer.id
+            payment_details.customer_id = customer.id
             payment_details.save()
         else:
-            PaymentDetails.objects.create(user=user, stripe_id=customer.id)
+            PaymentDetails.objects.create(user=user, customer_id=customer.id)
         return customer
 
     def _create_customer(self, user):
