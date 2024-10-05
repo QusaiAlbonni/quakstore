@@ -15,6 +15,8 @@ from pathlib import Path
 import environ
 import os
 
+import stripe
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -44,18 +46,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    #third Party
+
+    # third Party
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'djoser',
     'django_filters',
-    
-    #my apps
+
+
+    # my apps
     'product',
     'users',
-    'cart'
+    'cart',
+    'payment',
+    'order'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -150,3 +155,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication'
+    ),
+}
+
+
+
+STRIPE_TEST_SECRET_KEY = env("STRIPE_TEST_SECRET_KEY")
+STRIPE_LIVE_SECRET_KEY = env("STRIPE_LIVE_SECRET_KEY")
+STRIPE_LIVE_MODE = env.bool("STRIPE_LIVE_MODE")
+
+stripe.api_key = STRIPE_LIVE_SECRET_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_SECRET_KEY

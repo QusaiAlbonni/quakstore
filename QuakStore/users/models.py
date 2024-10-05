@@ -11,3 +11,4 @@ class User(AbstractUser):
         verbose_name=_(""),
         related_name='user',
         through_fields=('user', 'product'))
+    email= email = models.EmailField(_("email address"))

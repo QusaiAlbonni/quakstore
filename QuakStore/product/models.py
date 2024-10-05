@@ -18,23 +18,23 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
     def get_absolute_url(self):
         return reverse("category-detail", kwargs={"category_slug": self.slug})
-    
 
 
 class Discount(models.Model):
     name = models.CharField(max_length=50)
 
-    percent = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, validators=[MaxValueValidator(Decimal(100.0))])
+    percent = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, validators=[
+                                  MaxValueValidator(Decimal(100.0))])
     active = models.BooleanField(default=True)
 
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return self.name
-    
 
 
 class Product(models.Model):
@@ -43,10 +43,12 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     description = models.TextField(max_length=2047, blank=True, null=True)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
+    stripe_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    price = models.PositiveBigIntegerField(
+        validators=[MaxValueValidator(1000000)])
     stock = models.PositiveIntegerField(validators=[MaxValueValidator(10000)])
     discount = models.ForeignKey(
-        Discount, on_delete=models.SET_NULL, null=True)
+        Discount, on_delete=models.SET_NULL, null=True, blank=True)
     thumbnail = models.ImageField(
         upload_to='uploads/thumbnails/', blank=True, null=True)
     date_added = models.DateTimeField(auto_now_add=True)
@@ -57,10 +59,9 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def get_absolute_url(self):
         return reverse("product-detail", kwargs={"category_slug": self.category.slug, "product_slug": self.slug})
-    
 
     def thumbnail_url(self) -> str | None:
         if self.thumbnail:
