@@ -41,6 +41,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'discount',
             'price',
             'stock',
+            'in_stock',
         ]
 
     def get_thumbnail_url(self, obj):

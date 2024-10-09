@@ -24,6 +24,11 @@ class CartItem(models.Model):
     class Meta:
         verbose_name = _("Cart Item")
         verbose_name_plural = _("Cart Items")
-
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'product'], name='unique_user_product')
+        ]
+    
     def __str__(self):
         return self.product.name
+    
+    

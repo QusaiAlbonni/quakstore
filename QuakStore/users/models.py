@@ -12,3 +12,6 @@ class User(AbstractUser):
         related_name='user',
         through_fields=('user', 'product'))
     email= email = models.EmailField(_("email address"))
+    
+    def clear_cart(self):
+        self.items.remove()
