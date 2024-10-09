@@ -6,6 +6,8 @@ from collections.abc import Sequence
 
 from .models import Order, User, OrderItem, Product
 
+from django.db.models import F
+
 
 @dataclass(frozen=True)
 class OrderItemDTO:
@@ -68,6 +70,15 @@ class OrderAssembler:
             product= item.product
             product.stock -= item.quantity
             products.append(product)
-        
+
         Product.objects.bulk_update(products, ["stock"])
+        if products:
+            cart_items_to_remove = CartItem.objects.filter(
+                product_id__in=[product.id for product in products]
+            ).annotate(
+                available_stock=F('product__stock')
+            ).filter(
+                quantity__gt=F('available_stock')
+            ).delete()
+            print(cart_items_to_remove[0])
         return OrderItem.objects.bulk_create(items)

@@ -2,6 +2,7 @@ from typing import Any
 from django.shortcuts import render
 from django.db import transaction
 from django.db.models import Prefetch
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -58,12 +59,12 @@ class OrderViewSet(viewsets.ModelViewSet):
             cart_items = CartItem.objects.filter(user=user)
 
             if not len(cart_items):
-                raise ValidationError("Your cart is empty")
+                raise ValidationError({"non_field_errors": [_("Your cart is empty")]})
 
             try:
                 data = OrderDTO.from_cart(cart_items=cart_items)
             except ValueError as e:
-                raise ValidationError({"non_field_errors": ["your cart contains out of stock product or too much quantity of a certain product"]})
+                raise ValidationError({"non_field_errors": [_("your cart contains out of stock product or too much quantity of a certain product")]})
             
             assembler = OrderAssembler(data)
 

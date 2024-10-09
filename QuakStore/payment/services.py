@@ -51,7 +51,7 @@ class StripePaymentService(PaymentService):
 
             if payment_method.customer and payment_method.customer != customer.id:
                 raise PermissionDenied(
-                    "This payment method is already attached to another customer.")
+                    _("This payment method is already attached to another customer."))
 
             result = self._attach_payment_method_to_customer(
                 payment_method.id, customer.id)
@@ -81,7 +81,7 @@ class StripePaymentService(PaymentService):
         """
         if not self._verify_payment_method_ownership(payment_method_id, user):
             raise ObjectDoesNotExist(
-                "This payment method doesn't belong to you.")
+                _("This payment method doesn't belong to you."))
 
         try:
             result = stripe.PaymentMethod.detach(payment_method_id)
@@ -181,14 +181,14 @@ class StripePaymentService(PaymentService):
             payment.save()
             match error_code:
                 case 'card_declined':
-                    raise CardFailure('Your card was declined.')
+                    raise CardFailure(_('Your card was declined.'))
                 case 'insufficient_funds':
-                    raise InsufficientFunds('Insufficient funds')
+                    raise InsufficientFunds(_('Insufficient funds'))
                 case _s:
                     raise CardFailure()
         except stripe.error.InvalidRequestError as e:
             print(e)
-            raise ValidationError("Invalid payment method.")
+            raise ValidationError(_("Invalid payment method."))
         except stripe.error.IdempotencyError as e:
             print(e)
             raise DuplicatedPaymentError()

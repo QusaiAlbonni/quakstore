@@ -7,6 +7,8 @@ from django.core.files import File
 from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
 from decimal import Decimal
 
 
@@ -66,7 +68,7 @@ class Product(models.Model):
     def clean(self) -> None:
         super().clean()
         if self.discounted_price < 50:
-            raise ValidationError({'discount': "The discount resulted in a price thats below the minimum"})
+            raise ValidationError({'discount': _("The discount resulted in a price thats below the minimum")})
 
     def get_absolute_url(self):
         return reverse("product-detail", kwargs={"category_slug": self.category.slug, "product_slug": self.slug})
