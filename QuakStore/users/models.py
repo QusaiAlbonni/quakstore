@@ -6,11 +6,11 @@ from django.utils.translation import gettext_lazy as _
 
 class User(AbstractUser):
     items = models.ManyToManyField(
-        "product.Product",
-        through='cart.CartItem',
-        verbose_name=_(""),
-        related_name='user',
-        through_fields=('user', 'product'))
+    "product.Product",
+    through='cart.CartItem',
+    verbose_name=_(""),
+    related_name='user',
+    through_fields=('user', 'product'))
     email= email = models.EmailField(_("email address"))
     
     def clear_cart(self):
