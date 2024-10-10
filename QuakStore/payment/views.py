@@ -74,6 +74,12 @@ class PaymentMethodViewSet(viewsets.ViewSet):
 
     def list(self, request: Request) -> Response:
         data = self.payment_service.get_payment_methods(request.user)
+        for item in data:
+            item.pop('customer')
+            try:
+                item['card'].pop('fingerprint')
+            except KeyError:
+                continue
         return Response(data)
 
 
