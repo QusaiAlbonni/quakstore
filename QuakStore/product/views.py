@@ -1,33 +1,68 @@
 from django.shortcuts import render
 from django.http import Http404
+from django.core.cache import cache
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import viewsets
+from rest_framework import mixins
+from rest_framework.pagination import CursorPagination
 from rest_framework import filters
+from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import action
+from rest_framework import status
 
 import django_filters
 
 from .serializers import ProductSerializer, CategorySerializer
 from .models import Product, Category
 
+from favorites.models import Favorite
 
-class ProductPagination(LimitOffsetPagination):
-    max_limit = 100
+class ProductPagination(CursorPagination):
+    page_size=10
+    max_page_size= 100
+    ordering= '-date_added'
 
 
-class LatestProductsList(generics.ListAPIView):
+class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     pagination_class = ProductPagination
     queryset = Product.objects.select_related('discount').all()
     serializer_class = ProductSerializer
     filter_backends = [
-        django_filters.rest_framework.DjangoFilterBackend, filters.SearchFilter]
+        django_filters.rest_framework.DjangoFilterBackend, filters.SearchFilter
+    ]
     filterset_fields = ['category', 'stock']
     search_fields = ['name', 'description', 'category__name']
     ordering_fields = '__all__'
+    
+    cache_timeout = 60 * 15
+    
+    def list(self, request, *args, **kwargs):
+        cache_key = 'product_list'
+        cached_response = cache.get(cache_key)
 
+        if cached_response:
+            return Response(cached_response)
+        
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, self.cache_timeout)
+        return response
 
+    @action(['post'], detail=True)
+    def toggle_favorite(self, request, pk):
+        try:
+            product= Product.objects.get(pk= pk)
+        except Product.DoesNotExist as e:
+            raise Http404()
+        favorite, created = Favorite.objects.get_or_create(user= self.request.user, product= product)
+        
+        if not created:
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_201_CREATED)
+        
 class ProductDetails(APIView):
     def get_object(self, category_slug, product_slug):
         try:

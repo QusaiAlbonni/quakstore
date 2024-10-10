@@ -1,34 +1,39 @@
+from django.shortcuts import render
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .serializers import CartItemSerializer, CartItem, Product
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.serializers import ValidationError
+
+from .serializers import FavoriteSerializer, Favorite
+
+from product.views import ProductPagination
 # Create your views here.
 
-class CartPagination(LimitOffsetPagination):
-    max_limit = 10
 
-
-class CartItemViewSet(viewsets.ModelViewSet):
-    serializer_class = CartItemSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = CartPagination
-
+class FavoriteViewSet(viewsets.ModelViewSet):
+    serializer_class= FavoriteSerializer
+    permission_classes= [IsAuthenticated]
+    pagination_class= ProductPagination
+    
     def get_queryset(self):
+        queryset= Favorite.objects.filter(user= self.request.user)
+        
         if self.action == 'retrieve':
-            return CartItem.objects.filter(user=self.request.user).select_related('product')
-        return CartItem.objects.filter(user= self.request.user)
+            queryset = queryset.select_related('product')
+            
+        return queryset
     
     def get_serializer(self, *args, **kwargs):
         detail = True
         if self.action != 'retrieve':
             detail = False
         if self.action in ('update', 'partial_update'):
-            return super().get_serializer(*args, omit_pid= True, detail=detail, **kwargs)
+            return super().get_serializer(*args, detail=detail, **kwargs)
         return super().get_serializer(*args, detail=detail, **kwargs)
-
+    
     def create(self, request, *args, **kwargs):
         user = request.user
         data = request.data
@@ -39,3 +44,12 @@ class CartItemViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed()
+    
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed()
+    
+    

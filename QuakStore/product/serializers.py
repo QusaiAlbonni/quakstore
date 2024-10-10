@@ -3,13 +3,16 @@ from rest_framework.fields import empty
 
 from .models import Product, Category, Discount, ProductImage
 
+from favorites.models import Favorite
+
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         fields = [
             'name',
             'active',
-            'percent'
+            'percent',
+            'decimal',
         ]
         
 class ProductPhotosSerializer(serializers.ModelSerializer):
@@ -23,6 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     absolute_url = serializers.SerializerMethodField()
     discount = DiscountSerializer()
+    is_favorite= serializers.SerializerMethodField()
     
     def __init__(self, instance=None, data=empty, detail=False, **kwargs):
         super().__init__(instance, data, **kwargs)
@@ -42,6 +46,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'price',
             'stock',
             'in_stock',
+            'is_favorite',
         ]
 
     def get_thumbnail_url(self, obj):
@@ -54,6 +59,10 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_absolute_url(self, obj):
         request = self.context['request']
         return f"{request.scheme}://{request.get_host()}" + obj.get_absolute_url()
+    
+    def get_is_favorite(self, obj: Product):
+        user = self.context['request'].user
+        return Favorite.objects.filter(user= user, product= obj).exists()
 
 
 class CategorySerializer(serializers.ModelSerializer):

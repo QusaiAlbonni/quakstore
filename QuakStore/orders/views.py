@@ -20,10 +20,12 @@ from .serializers import OrderSerializer
 from .models import Order, OrderItem
 from .dto import OrderDTO, OrderAssembler
 
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import CursorPagination
 
-class OrderPagination(LimitOffsetPagination):
-    max_limit = 10
+class OrderPagination(CursorPagination):
+    page_size=10
+    max_page_size= 100
+    ordering='-date_added'
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class= OrderSerializer
