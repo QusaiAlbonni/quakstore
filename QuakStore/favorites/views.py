@@ -47,9 +47,9 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     
     
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed()
+        raise MethodNotAllowed('PUT')
     
     def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed()
+        raise MethodNotAllowed('PATCH')
     
     

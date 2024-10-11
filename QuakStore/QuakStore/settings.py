@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'djoser',
     'django_filters',
+    'drf_yasg',
 
 
     # my apps
@@ -170,6 +171,13 @@ REST_FRAMEWORK = {
     ),
 }
 
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'users.serializers.UserCreateSerializer',
+        'user': 'users.serializers.UserSerializer',
+        'current_user': 'users.serializers.UserSerializer',
+    }
+}
 
 
 STRIPE_TEST_SECRET_KEY = env("STRIPE_TEST_SECRET_KEY")

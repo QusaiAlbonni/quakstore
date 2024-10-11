@@ -92,13 +92,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(response_data)
                 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed()
+        raise MethodNotAllowed('PUT')
     
     def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed()
+        raise MethodNotAllowed('PATCH')
     
     def destroy(self, request, *args, **kwargs):
-        raise MethodNotAllowed()
+        raise MethodNotAllowed('DELETE')
             
         
         

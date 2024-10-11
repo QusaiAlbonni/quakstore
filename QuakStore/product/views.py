@@ -15,10 +15,12 @@ from rest_framework import status
 
 import django_filters
 
-from .serializers import ProductSerializer, CategorySerializer
+from .serializers import ProductSerializer, CategorySerializer, serializers
 from .models import Product, Category
 
 from favorites.models import Favorite
+
+from drf_yasg.utils import swagger_auto_schema
 
 class ProductPagination(CursorPagination):
     page_size=10
@@ -50,7 +52,16 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
         cache.set(cache_key, response.data, self.cache_timeout)
         return response
 
-    @action(['post'], detail=True)
+    @swagger_auto_schema(
+        method='post',
+        request_body=None,
+        responses={
+            '201': 'added to favoritess',
+            '204': 'Deleted from favorites',
+            '404': 'product not found',
+        }
+    )
+    @action(['post'], detail=True, serializer_class=serializers.Serializer)
     def toggle_favorite(self, request, pk):
         try:
             product= Product.objects.get(pk= pk)

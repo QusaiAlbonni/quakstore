@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "quakstore"
+version = "0.0.1"
+description = "An e-commerce store made in django and stripe"
+authors = ["QusaiAlbonni <albonniqusai@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -21,16 +21,22 @@ from django.conf import settings
 
 from orders.models import Order
 
+from drf_yasg.utils import swagger_auto_schema
+
 import stripe
 # Create your views here.
 
 
 class PaymentMethodViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
+    
     def __init__(self, payment_service=StripePaymentService(), **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.payment_service = payment_service
 
+    @swagger_auto_schema(
+        request_body=PaymentMethodInputSerializer
+    )
     @transaction.atomic
     def create(self, request: Request) -> Response:
         input_serializer = PaymentMethodInputSerializer(data=request.data)
@@ -44,12 +50,15 @@ class PaymentMethodViewSet(viewsets.ViewSet):
                 payment_method_id=payment_method_id,
                 user=user
             )
-            return Response(data=result, status=status.HTTP_200_OK)
+            return Response(data=result, status=status.HTTP_201_CREATED)
         except Verror as e:
             raise ValidationError(e.message)
         except DjPermissionDenied as e:
             raise PermissionDenied()
 
+    @swagger_auto_schema(
+        request_body=PaymentMethodInputSerializer
+    )
     @transaction.atomic
     def destroy(self, request: Request) -> Response:
         input_serializer = PaymentMethodInputSerializer(data=request.data)
