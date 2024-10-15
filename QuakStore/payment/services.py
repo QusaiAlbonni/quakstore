@@ -192,6 +192,8 @@ class StripePaymentService(PaymentService):
         except stripe.error.IdempotencyError as e:
             print(e)
             raise DuplicatedPaymentError()
+        except Exception:
+            raise PaymentFailure()
 
     def _verify_payment_method_ownership(self, payment_method_id: str, user) -> bool:
         try:

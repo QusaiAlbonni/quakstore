@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.http import Http404
 from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers, vary_on_cookie
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -41,15 +44,11 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     
     cache_timeout = 60 * 15
     
+    @method_decorator(cache_page(60 * 15))
+    @method_decorator(vary_on_headers("Authorization"))
+    @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
-        cache_key = 'product_list'
-        cached_response = cache.get(cache_key)
-
-        if cached_response:
-            return Response(cached_response)
-        
         response = super().list(request, *args, **kwargs)
-        cache.set(cache_key, response.data, self.cache_timeout)
         return response
 
     @swagger_auto_schema(

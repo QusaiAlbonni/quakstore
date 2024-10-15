@@ -58,7 +58,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             payment_serializer = PaymentMethodInputSerializer(data=request.data)
             payment_serializer.is_valid(raise_exception=True)
             method_id = payment_serializer.validated_data['payment_method_id']
-            cart_items = CartItem.objects.filter(user=user).select_related('product').select_for_update(of=('product',))
+            cart_items = CartItem.objects.filter(user=user).order_by('product__id').select_related('product').select_for_update(of=('product',))
 
             if not len(cart_items):
                 raise ValidationError({"non_field_errors": [_("Your cart is empty")]})

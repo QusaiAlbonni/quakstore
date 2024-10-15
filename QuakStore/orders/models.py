@@ -83,7 +83,6 @@ class Order(models.Model):
                 product.stock += order_item.quantity
                 product.save()
 
-
             self.state = self.Status.CANCELLED
             self.save()
 

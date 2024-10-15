@@ -48,7 +48,7 @@ class OrderDTO:
 
 
 class OrderAssembler:
-    def __init__(self, DTO: OrderDTO) -> None:
+    def __init__(self, DTO: OrderDTO= None) -> None:
         self.dto = DTO
         
     def create(self) -> Order:
@@ -82,3 +82,4 @@ class OrderAssembler:
             ).delete()
             print(cart_items_to_remove[0])
         return OrderItem.objects.bulk_create(items)
+    

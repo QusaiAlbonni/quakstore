@@ -5,6 +5,8 @@ from .models import Product, Category, Discount, ProductImage
 
 from favorites.models import Favorite
 
+from django.contrib.auth.models import AbstractUser
+
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
@@ -49,7 +51,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_favorite',
         ]
 
-    def get_thumbnail_url(self, obj):
+    def get_thumbnail_url(self, obj: Product):
         img = obj.thumbnail_url()
         if img is None:
             return None
@@ -61,7 +63,9 @@ class ProductSerializer(serializers.ModelSerializer):
         return f"{request.scheme}://{request.get_host()}" + obj.get_absolute_url()
     
     def get_is_favorite(self, obj: Product):
-        user = self.context['request'].user
+        user: AbstractUser = self.context['request'].user
+        if user.is_anonymous:
+            return False
         return Favorite.objects.filter(user= user, product= obj).exists()
 
 
