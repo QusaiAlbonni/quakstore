@@ -93,7 +93,7 @@ class Product(models.Model):
     @property
     def discounted_price(self) -> int:
         if self.discount and self.discount.active:
-            return int(self.price * self.discount.decimal)
+            return int(self.price * (1 - self.discount.decimal))
         return self.price
     
     def make_thumbnail(self, image, size=(300, 200)):
