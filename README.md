@@ -44,5 +44,6 @@ To set up the project locally, follow these steps:
 ### 3. [Redis](https://redis.io/)
 ### 4. [PostgreSQL](https://www.postgresql.org/)
 ### 5. [Render](https://render.com/)
+### 6. [BackBlaze B2](https://www.backblaze.com/)
 
 ### Be on the look out for upcoming mobile app and client site repos!
