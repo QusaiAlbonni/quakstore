@@ -6,6 +6,7 @@ from .models import Product, Category, Discount, ProductImage
 from favorites.models import Favorite
 
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,8 +57,10 @@ class ProductSerializer(serializers.ModelSerializer):
         if img is None:
             return None
         request = self.context['request']
-        return f"{request.scheme}://{request.get_host()}{img}"
-
+        if settings.DEBUG:
+            return f"{request.scheme}://{request.get_host()}{img}"
+        else:
+            return img
     def get_absolute_url(self, obj):
         request = self.context['request']
         return f"{request.scheme}://{request.get_host()}" + obj.get_absolute_url()

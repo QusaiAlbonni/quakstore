@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'djoser',
     'django_filters',
     'drf_yasg',
+    'storages',
 
 
     # my apps
@@ -148,13 +149,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
-if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -190,3 +188,40 @@ stripe.api_key = STRIPE_LIVE_SECRET_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_SEC
 CURRENCY = 'usd'
 
 MAXIMUM_CART_ITEMS = 20
+
+if not DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "access_key": env("AWS_ACCESS_KEY_ID"),
+                "secret_key": env("AWS_SECRET_ACCESS_KEY"),
+                "bucket_name": env("AWS_STORAGE_BUCKET_NAME"),
+                "endpoint_url": 'https://' + env("AWS_S3_ENDPOINT_URL"),
+                "region_name": env("AWS_S3_REGION_NAME")
+            }
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+
+    }
+
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_ENDPOINT_URL = 'https://' + env("AWS_S3_ENDPOINT_URL")
+AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+AWS_S3_FILE_OVERWRITE = False 
+
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+if not DEBUG:
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.{env("AWS_S3_ENDPOINT_URL")}/'
+
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
