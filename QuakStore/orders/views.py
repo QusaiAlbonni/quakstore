@@ -20,10 +20,11 @@ from .serializers import OrderSerializer
 from .models import Order, OrderItem
 from .dto import OrderDTO, OrderAssembler
 
-from rest_framework.pagination import CursorPagination
+from rest_framework.pagination import CursorPagination, PageNumberPagination
 
-class OrderPagination(CursorPagination):
+class OrderPagination(PageNumberPagination):
     page_size=10
+    page_size_query_param = 'page_size'
     max_page_size= 100
     ordering='-date_added'
 
