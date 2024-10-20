@@ -77,7 +77,7 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
 class ProductDetails(APIView):
     def get_object(self, category_slug, product_slug):
         try:
-            return Product.objects.filter(category__slug=category_slug).select_related('discount').get(slug=product_slug)
+            return Product.objects.filter(category__slug=category_slug).select_related('discount').filter(slug=product_slug).first()
         except Product.DoesNotExist:
             raise Http404()
 

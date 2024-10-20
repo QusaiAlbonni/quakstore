@@ -48,7 +48,7 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
     description = models.TextField(max_length=2047, blank=True, null=True)
     stripe_id = models.CharField(
         max_length=255, unique=True, blank=True, null=True)

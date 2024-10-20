@@ -36,6 +36,7 @@ class ProductSerializer(serializers.ModelSerializer):
         
         if detail:
             self.fields['images'] = ProductPhotosSerializer(many=True)
+            self.fields['category'] = CategorySerializer(read_only=True, detail=False)
     
     class Meta:
         model = Product
@@ -73,8 +74,15 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True)
     absolute_url = serializers.SerializerMethodField()
+    
+    def __init__(self, instance=None, data=empty, detail=True, **kwargs):
+        super().__init__(instance, data, **kwargs)
+        
+        if detail:
+            self.fields['products'] =  ProductSerializer(many=True, read_only=True)
+        else:
+            self.fields.pop('products')
 
     class Meta:
         model = Category
