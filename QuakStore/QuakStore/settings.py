@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'payment',
     'orders',
     'favorites',
+    'reviews',
 ]
 
 CORS_ALLOWED_ORIGINS = [
