@@ -9,12 +9,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, MethodNotAllowed
+from rest_framework.decorators import action
 
 from payment.serializers import PaymentMethodInputSerializer
 from payment.services import PaymentService, StripePaymentService, PaymentState
 from payment.exceptions import PaymentFailure
 
 from cart.models import CartItem
+from common.throttles import BurstThrottle, DailyThrottle, RapidThrottle
 
 from .serializers import OrderSerializer
 from .models import Order, OrderItem
@@ -52,6 +54,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             detail= True
         kwargs.setdefault('context', self.get_serializer_context())
         return serializer_class(detail=detail,*args, **kwargs)
+    
+    def get_throttles(self):
+        if self.request.method in ('create',):
+            return [BurstThrottle(), RapidThrottle(), DailyThrottle()]
+        return super().get_throttles()
     
     def create(self, request: Request, *args, **kwargs) -> Response:
         with transaction.atomic():

@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'orders',
     'favorites',
     'reviews',
+    'common',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -168,6 +169,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication'
     ),
+    'DEFAULT_THROTTLE_RATES': {
+        'burst': '1/s',
+        'rapid': '100/hour',
+        'daily': '1000/day'
+    }
 }
 
 DJOSER = {
