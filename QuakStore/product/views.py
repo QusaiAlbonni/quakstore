@@ -34,7 +34,7 @@ class ProductPagination(PageNumberPagination):
 
 class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     pagination_class = ProductPagination
-    queryset = Product.objects.select_related('discount').all()
+    queryset = Product.objects.select_related('discount', 'category').prefetch_related('images').all()
     serializer_class = ProductSerializer
     filter_backends = [
         django_filters.rest_framework.DjangoFilterBackend, filters.SearchFilter

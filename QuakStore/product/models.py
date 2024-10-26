@@ -77,7 +77,9 @@ class Product(models.Model):
         if self.thumbnail:
             return self.thumbnail.url
         else:
-            image = self.images.first()
+            if not len(self.images.all()):
+                return None
+            image = self.images.all()[0]
             if image:
                 self.thumbnail = self.make_thumbnail(image.url)
                 self.save()
