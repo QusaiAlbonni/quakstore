@@ -7,6 +7,7 @@ from favorites.models import Favorite
 
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.db.models import Avg
 
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,6 +31,7 @@ class ProductSerializer(serializers.ModelSerializer):
     absolute_url = serializers.SerializerMethodField()
     discount = DiscountSerializer()
     is_favorite= serializers.SerializerMethodField()
+    avg_rating= serializers.SerializerMethodField()
     
     def __init__(self, instance=None, data=empty, detail=False, **kwargs):
         super().__init__(instance, data, **kwargs)
@@ -51,6 +53,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'stock',
             'in_stock',
             'is_favorite',
+            'avg_rating'
         ]
 
     def get_thumbnail_url(self, obj: Product):
@@ -71,6 +74,9 @@ class ProductSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
         return Favorite.objects.filter(user= user, product= obj).exists()
+    
+    def get_avg_rating(self, obj: Product):
+        return obj.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating']
 
 
 class CategorySerializer(serializers.ModelSerializer):
