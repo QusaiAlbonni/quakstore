@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'storages',
 
-
     # my apps
     'product',
     'users',
@@ -67,6 +66,9 @@ INSTALLED_APPS = [
     'reviews',
     'common',
 ]
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar',]
+    
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8080'
@@ -83,6 +85,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+if DEBUG:
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware',]
+
+INTERNAL_IPS = ['127.0.0.1']
 
 ROOT_URLCONF = 'QuakStore.urls'
 
