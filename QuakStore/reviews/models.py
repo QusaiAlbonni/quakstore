@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
-from product.models import Product
+from product.models import Product, Category
 
 from decimal import Decimal
 
@@ -21,7 +21,6 @@ class Review(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)    
 
-    
     def __str__(self):
         return f"{self.user.username} - {self.product.name} ({self.rating}/5)"
       
