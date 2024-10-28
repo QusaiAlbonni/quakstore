@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
 
     # third Party
     'rest_framework',
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'storages',
+    'cacheops',
 
     # my apps
     'product',
@@ -121,6 +123,13 @@ DATABASES = {
 CACHES = {
     'default': env.cache()
 }
+CACHEOPS = {
+    'product.Product': {
+        'ops': [],
+        'timeout': 60 * 15 
+    }
+}
+CACHEOPS_REDIS = env("CACHE_URL")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

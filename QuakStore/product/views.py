@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.http import Http404
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import last_modified
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers, vary_on_cookie
+from django.db.models import Subquery, OuterRef, Exists, Avg, QuerySet
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,11 +17,14 @@ from rest_framework import filters
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework import status
+from rest_framework.request import Request
 
 import django_filters
 
 from .serializers import ProductSerializer, CategorySerializer, serializers
-from .models import Product, Category
+from .models import Product, Category, ProductImage
+
+from reviews.models import Review
 
 from favorites.models import Favorite
 
@@ -34,20 +39,37 @@ class ProductPagination(PageNumberPagination):
 
 class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     pagination_class = ProductPagination
-    queryset = Product.objects.select_related('discount', 'category').prefetch_related('images', 'reviews').all()
     serializer_class = ProductSerializer
     filter_backends = [
         django_filters.rest_framework.DjangoFilterBackend, filters.SearchFilter
     ]
     filterset_fields = ['category', 'stock']
-    search_fields = ['name', 'description', 'category__name']
+    search_fields = ['@name', '@description', '@category__name']
     ordering_fields = '__all__'
     
     cache_timeout = 60 * 15
     
-    @method_decorator(cache_page(60 * 15))
-    @method_decorator(vary_on_headers("Authorization"))
-    @method_decorator(vary_on_cookie)
+    def get_queryset(self):
+        queryset = Product.objects \
+        .select_related('discount', 'category') \
+        .defer('category__name', 'category__id')\
+        .prefetch_related('images')
+        
+        queryset= queryset.annotate(avg_rating=Avg('reviews__rating')).cache()
+                
+        return queryset.order_by('id').all()
+    
+    def get_serializer(self, queryset: QuerySet, *args, **kwargs):
+        products = []
+        favorites = Favorite.objects.filter(user= self.request.user).all()
+        products_favorites = [favorite.product_id for favorite in favorites]
+        for product in queryset:
+            products.append(product)
+            if product.pk in products_favorites:
+                product.is_favorited = True
+        return super().get_serializer(products, *args, **kwargs)
+    
+    
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return response

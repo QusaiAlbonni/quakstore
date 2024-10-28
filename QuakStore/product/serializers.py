@@ -70,13 +70,10 @@ class ProductSerializer(serializers.ModelSerializer):
         return f"{request.scheme}://{request.get_host()}" + obj.get_absolute_url()
     
     def get_is_favorite(self, obj: Product):
-        user: AbstractUser = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return Favorite.objects.filter(user= user, product= obj).exists()
+        return getattr(obj, 'is_favorited', None)
     
     def get_avg_rating(self, obj: Product):
-        return obj.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating']
+        return getattr(obj, 'avg_rating', None)
 
 
 class CategorySerializer(serializers.ModelSerializer):
