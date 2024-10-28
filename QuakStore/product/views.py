@@ -59,7 +59,11 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
                 
         return queryset.order_by('id').all()
     
-    def get_serializer(self, queryset: QuerySet, *args, **kwargs):
+    def get_serializer(self, queryset: QuerySet=None, *args, **kwargs):
+        
+        if queryset is None:
+            return super().get_serializer(*args, **kwargs)
+        
         products = []
         favorites = Favorite.objects.filter(user= self.request.user).all()
         products_favorites = [favorite.product_id for favorite in favorites]
@@ -67,10 +71,11 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
             products.append(product)
             if product.pk in products_favorites:
                 product.is_favorited = True
+        
         return super().get_serializer(products, *args, **kwargs)
     
     
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):    
         response = super().list(request, *args, **kwargs)
         return response
 
