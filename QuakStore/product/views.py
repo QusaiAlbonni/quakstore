@@ -81,8 +81,11 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
         return super().get_serializer(products, *args, **kwargs)
     
     
-    def list(self, request, *args, **kwargs):    
-        response = super().list(request, *args, **kwargs)
+    def list(self, request, *args, **kwargs):   
+        try: 
+            response = super().list(request, *args, **kwargs)
+        except Exception as e:
+            print(e)
         return response
 
     @swagger_auto_schema(
