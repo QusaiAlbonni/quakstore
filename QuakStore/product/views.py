@@ -57,7 +57,7 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
         
         queryset= queryset.annotate(avg_rating=Avg('reviews__rating')).cache()
                 
-        return queryset.order_by('id').all()
+        return queryset.order_by('-date_added').all()
     
     def get_serializer(self, queryset: QuerySet=None, *args, **kwargs):
         
