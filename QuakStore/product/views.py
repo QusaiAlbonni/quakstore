@@ -62,10 +62,16 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     def get_serializer(self, queryset: QuerySet=None, *args, **kwargs):
         
         if queryset is None:
-            return super().get_serializer(*args, **kwargs)
+            return super().get_serializer(queryset, *args, **kwargs)
+        
+        if not hasattr(queryset, '__iter__'):
+            return super().get_serializer(queryset, *args, **kwargs)
         
         products = []
-        favorites = Favorite.objects.filter(user= self.request.user).all()
+        favorites = []
+        if self.request.user.is_authenticated:
+            favorites = Favorite.objects.filter(user= self.request.user).all()
+            
         products_favorites = [favorite.product_id for favorite in favorites]
         for product in queryset:
             products.append(product)
