@@ -32,6 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
     discount = DiscountSerializer()
     is_favorite= serializers.SerializerMethodField()
     avg_rating= serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
     
     def __init__(self, instance=None, data=empty, detail=False, **kwargs):
         super().__init__(instance, data, **kwargs)
@@ -53,7 +54,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'stock',
             'in_stock',
             'is_favorite',
-            'avg_rating'
+            'avg_rating',
+            'rating_count'
         ]
 
     def get_thumbnail_url(self, obj: Product):
@@ -74,7 +76,9 @@ class ProductSerializer(serializers.ModelSerializer):
     
     def get_avg_rating(self, obj: Product):
         return getattr(obj, 'avg_rating', None)
-
+    
+    def get_rating_count(self, obj: Product):
+        return getattr(obj, 'rating_count')
 
 class CategorySerializer(serializers.ModelSerializer):
     absolute_url = serializers.SerializerMethodField()

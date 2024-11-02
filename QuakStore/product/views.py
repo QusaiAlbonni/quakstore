@@ -5,7 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import last_modified
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers, vary_on_cookie
-from django.db.models import Subquery, OuterRef, Exists, Avg, QuerySet
+from django.db.models import Subquery, OuterRef, Exists, Avg, QuerySet, Count, DecimalField
+from django.db.models.functions import Cast
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -55,7 +56,7 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
         .defer('category__name', 'category__id')\
         .prefetch_related('images')
         
-        queryset= queryset.annotate(avg_rating=Avg('reviews__rating')).cache()
+        queryset= queryset.annotate(avg_rating=Cast(Avg('reviews__rating'), DecimalField(max_digits=5, decimal_places=2)), rating_count= Count('reviews')).cache()
                 
         return queryset.order_by('-date_added').all()
     

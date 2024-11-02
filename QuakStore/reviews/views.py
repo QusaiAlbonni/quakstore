@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.db.models import Case, Value, When, BooleanField
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -24,7 +25,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
         category = get_object_or_404(Category, slug=category_slug)
         product = get_object_or_404(Product, slug=product_slug, category=category)
         
-        return Review.objects.select_related('user').filter(product= product)
+        user = self.request.user if self.request.user.is_authenticated else None
+        
+        return Review.objects\
+            .select_related('user') \
+            .filter(product= product) \
+            .annotate(
+                is_user_review= Case(
+                    When(
+                        user=user,
+                        then=Value(True)
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField() 
+                )
+            ).order_by('-is_user_review', '-date_added')
     
     def get_serializer_class(self):
         if self.request.method in ('POST',):
