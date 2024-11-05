@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import last_modified
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers, vary_on_cookie
-from django.db.models import Subquery, OuterRef, Exists, Avg, QuerySet, Count, DecimalField
+from django.db.models import Subquery, OuterRef, Exists, Avg, QuerySet, Count, DecimalField, Prefetch
 from django.db.models.functions import Cast
 
 from rest_framework.response import Response
@@ -114,7 +114,9 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
 class ProductDetails(APIView):
     def get_object(self, category_slug, product_slug):
         try:
-            return Product.objects.filter(category__slug=category_slug).select_related('discount').filter(slug=product_slug).get()
+            return Product.objects.filter(category__slug=category_slug, slug=product_slug).select_related('discount').prefetch_related('images')\
+            .annotate(avg_rating=Cast(Avg('reviews__rating'), DecimalField(max_digits=5, decimal_places=2)), rating_count= Count('reviews'))\
+            .get()
         except Product.DoesNotExist:
             raise Http404()
 
@@ -128,7 +130,19 @@ class ProductDetails(APIView):
 class CategoryDetail(APIView):
     def get_object(self, category_slug):
         try:
-            return Category.objects.prefetch_related('products').get(slug=category_slug)
+            return Category.objects\
+            .prefetch_related(Prefetch(
+                'products',
+                Product.objects
+                .select_related('discount')
+                .prefetch_related('images')
+                .annotate(
+                    avg_rating=Cast(Avg('reviews__rating'),
+                    DecimalField(max_digits=5, decimal_places=2)),
+                    rating_count= Count('reviews')
+                )
+            ))\
+            .get(slug=category_slug)
         except Category.DoesNotExist:
             raise Http404()
 
@@ -141,3 +155,6 @@ class CategoryDetail(APIView):
 class CategoryList(generics.ListAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all().prefetch_related('products')
+    
+    def get_serializer(self, *args, **kwargs):
+        return super().get_serializer(detail=False ,*args, **kwargs)
