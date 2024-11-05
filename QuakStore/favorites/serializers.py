@@ -7,12 +7,10 @@ from .models import Favorite
 from product.serializers import ProductSerializer
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    
+    product = ProductSerializer(read_only=True, detail=False) 
     def __init__(self, instance=None, data=empty, detail=False, **kwargs):
         super().__init__(instance, data, **kwargs)
         
-        if detail:
-            self.fields['product'] = ProductSerializer(read_only=True)
     
     class Meta:
         model = Favorite

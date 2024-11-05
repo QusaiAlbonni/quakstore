@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.db.models import Prefetch, Count, Avg, DecimalField
+from django.db.models.functions import Cast
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +12,7 @@ from rest_framework import status
 from .serializers import FavoriteSerializer, Favorite
 
 from product.views import ProductPagination
+from product.models import Product
 # Create your views here.
 
 
@@ -20,16 +23,22 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         queryset= Favorite.objects.filter(user= self.request.user)
-        
-        if self.action == 'retrieve':
-            queryset = queryset.select_related('product')
-            
+        queryset = queryset\
+        .prefetch_related(Prefetch(
+                'product',
+                Product.objects
+                .select_related('discount')
+                .prefetch_related('images')
+                .annotate(
+                    avg_rating=Cast(Avg('reviews__rating'),
+                    DecimalField(max_digits=5, decimal_places=2)),
+                    rating_count= Count('reviews')
+                )
+            )).order_by('-date_added')
         return queryset
     
     def get_serializer(self, *args, **kwargs):
-        detail = True
-        if self.action != 'retrieve':
-            detail = False
+        detail = False
         if self.action in ('update', 'partial_update'):
             return super().get_serializer(*args, detail=detail, **kwargs)
         return super().get_serializer(*args, detail=detail, **kwargs)
