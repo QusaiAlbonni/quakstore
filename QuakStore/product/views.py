@@ -1,10 +1,5 @@
 from django.shortcuts import render
 from django.http import Http404
-from django.core.cache import cache
-from django.utils.decorators import method_decorator
-from django.views.decorators.http import last_modified
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_headers, vary_on_cookie
 from django.db.models import Subquery, OuterRef, Exists, Avg, QuerySet, Count, DecimalField, Prefetch
 from django.db.models.functions import Cast
 

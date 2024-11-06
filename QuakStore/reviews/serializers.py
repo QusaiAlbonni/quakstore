@@ -14,9 +14,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     added_since = serializers.SerializerMethodField()
     modified_since=serializers.SerializerMethodField()
     user = PublicUserSerializer(read_only=True)
+    absolute_url = serializers.SerializerMethodField()
     class Meta:
         model = Review
         fields = [
+            'id',
             'user',
             'product',
             'rating',
@@ -24,7 +26,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             'date_added',
             'date_modified',
             'added_since',
-            'modified_since'
+            'modified_since',
+            'absolute_url'
         ]
     
     def get_added_since(self, obj: Review):
@@ -32,6 +35,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def get_modified_since(self, obj: Review):
         return timesince(obj.date_modified, now())
+    
+    def get_absolute_url(self, obj):
+        request = self.context['request']
+        return f"{request.scheme}://{request.get_host()}" + obj.get_absolute_url()
     
     
     

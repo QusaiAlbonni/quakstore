@@ -13,7 +13,8 @@ class OwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request: HttpRequest, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        if (request.method in ('PUT', 'PATCH')) and request.user.is_authenticated and (request.user == obj.user):
+        print(obj)
+        if (request.method in ('PUT', 'PATCH', 'DELETE')) and request.user.is_authenticated and (request.user == obj.user):
             return True
         
         return False
