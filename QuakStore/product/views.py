@@ -115,7 +115,7 @@ class ProductDetails(APIView):
     def get_object(self, category_slug, product_slug):
         try:
             return Product.objects.filter(category__slug=category_slug, slug=product_slug).select_related('discount').prefetch_related('images')\
-            .annotate(avg_rating=Cast(Avg('reviews__rating'), DecimalField(max_digits=5, decimal_places=2)), rating_count= Count('reviews'))\
+            .annotate(avg_rating=Cast(Avg('reviews__rating'), DecimalField(max_digits=5, decimal_places=2)), rating_count= Count('reviews'), is_favorited=Exists(Favorite.objects.filter(product_id=OuterRef('id'), user_id = self.request.user.id if self.request.user.is_authenticated else None)))\
             .get()
         except Product.DoesNotExist:
             raise Http404()
