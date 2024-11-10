@@ -8,6 +8,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from .validators import FileExtensionValidator, LimitedFileSizeValidator
 
 from decimal import Decimal
 
@@ -15,6 +16,10 @@ from decimal import Decimal
 class Category(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
+    icon = models.ImageField(null=True, blank=True, validators=[
+        FileExtensionValidator(['png', 'svg', 'ico']),
+        LimitedFileSizeValidator(100 * 1024)
+        ])
 
     class Meta:
         ordering = ('name',)

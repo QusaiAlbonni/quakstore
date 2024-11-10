@@ -1,4 +1,4 @@
-from djoser.serializers import UserCreateSerializer as DjoserCreateSerializer, UserSerializer as DjoserUserSerializer
+from djoser.serializers import UserCreateSerializer as DjoserCreateSerializer, UserSerializer as DjoserUserSerializer, TokenSerializer as DjoserTokenSerializer
 from rest_framework.fields import empty
 
 class UserCreateSerializer(DjoserCreateSerializer):
@@ -16,3 +16,10 @@ class PublicUserSerializer(UserSerializer):
         super().__init__(instance, data, **kwargs)
         self.fields.pop('email')
         self.fields.pop('id')
+
+class TokenSerializer(DjoserTokenSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta(DjoserTokenSerializer.Meta):
+        fields = DjoserTokenSerializer.Meta.fields + (
+            'user',
+        )
