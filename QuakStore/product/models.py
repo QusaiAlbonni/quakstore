@@ -70,9 +70,19 @@ class Product(models.Model):
     class Meta:
         ordering = ('-date_added',)
 
+    @property
+    def in_stock(self) -> bool:
+        return bool(self.stock > 0)
+
+    @property
+    def discounted_price(self) -> int:
+        if self.discount and self.discount.active:
+            return int(self.price * (1 - self.discount.decimal))
+        return self.price
+
     def clean(self) -> None:
         super().clean()
-        if self.discounted_price < 50:
+        if (self.price is None) or (self.discounted_price < 50):
             raise ValidationError({'discount': _("The discount resulted in a price thats below the minimum")})
 
     def get_absolute_url(self):
@@ -93,15 +103,6 @@ class Product(models.Model):
             else:
                 return None
 
-    @property
-    def in_stock(self) -> bool:
-        return bool(self.stock > 0)
-
-    @property
-    def discounted_price(self) -> int:
-        if self.discount and self.discount.active:
-            return int(self.price * (1 - self.discount.decimal))
-        return self.price
     
     def make_thumbnail(self, image, size=(300, 200)):
         img = Image.open(image)
