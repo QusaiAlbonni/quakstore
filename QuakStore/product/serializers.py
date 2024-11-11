@@ -78,7 +78,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return getattr(obj, 'avg_rating', None)
     
     def get_rating_count(self, obj: Product):
-        return getattr(obj, 'rating_count')
+        return getattr(obj, 'rating_count', None) 
 
 class CategorySerializer(serializers.ModelSerializer):
     absolute_url = serializers.SerializerMethodField()

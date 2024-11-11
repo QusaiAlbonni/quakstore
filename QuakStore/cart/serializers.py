@@ -29,8 +29,8 @@ class CartItemSerializer(serializers.ModelSerializer):
         
         if omit_pid:
             self.fields.pop('product')
-        if detail:
-            self.fields['product'] = ProductSerializer(read_only=True)
+            
+        self.fields['product'] = ProductSerializer(read_only=True)
 
     class Meta:
         model = CartItem
