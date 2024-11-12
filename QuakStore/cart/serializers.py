@@ -29,8 +29,9 @@ class CartItemSerializer(serializers.ModelSerializer):
         
         if omit_pid:
             self.fields.pop('product')
-            
-        self.fields['product'] = ProductSerializer(read_only=True)
+            self.fields.pop('user')
+        if detail:
+            self.fields['product'] = ProductSerializer(read_only=True)
 
     class Meta:
         model = CartItem
@@ -59,5 +60,31 @@ class CartItemSerializer(serializers.ModelSerializer):
         count_validator= ModelCountValidator(CartItem.objects.filter(user= user), settings.MAXIMUM_CART_ITEMS)
         
         count_validator()
+        
+        return super().validate(attrs)
+
+class CartItemCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = [
+            'product',
+            'quantity'
+        ]
+        
+class CartItemUpdateSerializer(serializers.ModelSerializer):
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance, data, **kwargs)
+
+    class Meta:
+        model = CartItem
+        fields = [
+            'quantity'
+        ]
+    def validate(self, attrs):
+        product= self.instance.product
+        quantity= attrs.get('quantity', 0)
+        
+        if quantity > (product.stock + self.instance.quantity):
+            raise ValidationError({'product': [_("Quantity higher than available stock") if product.stock > 0 else _("out of stock")]})
         
         return super().validate(attrs)
