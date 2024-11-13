@@ -48,7 +48,6 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     def get_queryset(self):
         queryset = Product.objects \
         .select_related('discount', 'category') \
-        .defer('category__name', 'category__id')\
         .prefetch_related('images')
         
         queryset= queryset.annotate(avg_rating=Cast(Avg('reviews__rating'), DecimalField(max_digits=5, decimal_places=2)), rating_count= Count('reviews')).cache()

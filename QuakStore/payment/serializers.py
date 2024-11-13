@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment
+from .models import Payment, PaymentDetails
 
 class PaymentMethodInputSerializer(serializers.Serializer):
     payment_method_id = serializers.CharField(max_length=255, required=True)
@@ -23,3 +23,13 @@ class PaymentSerializer(serializers.ModelSerializer):
             'failure_reason',
             'status'
         )
+
+class PaymentDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentDetails
+        fields = [
+            'id',
+            'customer_id',
+            'user_id',
+            'provider'
+        ]

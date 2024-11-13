@@ -7,18 +7,17 @@ from orders.models import Order
 User = get_user_model()
 
 
-class Payment():
-    pass
-
 
 class PaymentDetails(models.Model):
     customer_id = models.CharField(max_length=254, unique=True)
 
     user = models.OneToOneField(
-        User, related_name='customer', on_delete=models.CASCADE)
+        User, related_name='payment_details', on_delete=models.CASCADE)
 
     provider = models.CharField(max_length=50, default='stripe')
 
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
 
 class Payment(models.Model):
     class Status(models.TextChoices):

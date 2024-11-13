@@ -39,7 +39,7 @@ class ProductSerializer(serializers.ModelSerializer):
         
         if detail:
             self.fields['images'] = ProductPhotosSerializer(many=True)
-            self.fields['category'] = CategorySerializer(read_only=True, detail=False)
+        self.fields['category'] = CategorySerializer(read_only=True, detail=False)
     
     class Meta:
         model = Product

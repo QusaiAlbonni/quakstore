@@ -3,6 +3,8 @@ import stripe
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from .models import PaymentDetails
+
 from .models import PaymentDetails, Payment
 from .exceptions import CardFailure, InsufficientFunds, PaymentFailure, DuplicatedPaymentError
 
@@ -37,6 +39,9 @@ class PaymentService(Protocol):
         ...
 
     def create_payment_intent(self, order, payment_method_id, confirm=False) -> tuple[Payment, PaymentState, str]:
+        ...
+        
+    def create_payment_details(self, user) -> PaymentDetails:
         ...
 
 
@@ -91,12 +96,6 @@ class StripePaymentService(PaymentService):
             raise ValidationError(str(e))
 
     def get_payment_methods(self, user) -> list:
-        cache_key = self.cache_key_for_payment_methods(user.id)
-        cached_methods = cache.get(cache_key)
-
-        if cached_methods is not None:
-            return cached_methods
-
         data = []
         try:
             payment_details = PaymentDetails.objects.get(user=user)
@@ -106,8 +105,6 @@ class StripePaymentService(PaymentService):
 
             for method in payment_methods['data']:
                 data.append(method.to_dict())
-
-            cache.set(cache_key, data, 3600)
 
         except PaymentDetails.DoesNotExist:
             pass
@@ -194,6 +191,10 @@ class StripePaymentService(PaymentService):
             raise DuplicatedPaymentError()
         except Exception:
             raise PaymentFailure()
+        
+    def create_payment_details(self, user) -> PaymentDetails:
+        customer = self._create_customer(user)
+        return PaymentDetails.objects.create(user= user, customer_id= customer.id)
 
     def _verify_payment_method_ownership(self, payment_method_id: str, user) -> bool:
         try:
