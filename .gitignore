@@ -287,3 +287,6 @@ pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/database,python,venv,django
 staticfiles
+
+
+.*
