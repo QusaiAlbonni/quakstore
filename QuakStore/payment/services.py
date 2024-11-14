@@ -125,12 +125,14 @@ class StripePaymentService(PaymentService):
     def cache_key_for_payment_methods(cls, user_id):
         return f"payment_methods_user_{user_id}"
 
-    def create_payment_intent(self, order: Order, payment_method_id, confirm=False) -> tuple[Payment, PaymentState, str]:
+    def create_payment_intent(self, order: Order, payment_method_id=None, confirm=False) -> tuple[Payment, PaymentState, str]:
         idempotency_key = f"payment_intent_order_{order.uuid}"
         
-        if not self._verify_payment_method_ownership(payment_method_id, order.owner):
-            raise PermissionDenied(
-                "This payment method doesn't belong to you.")
+        if payment_method_id is not None:
+            if not self._verify_payment_method_ownership(payment_method_id, order.owner):
+                raise PermissionDenied(
+                    "This payment method doesn't belong to you."
+                )
         """
         Create a payment intent for the given order.
         
@@ -149,15 +151,20 @@ class StripePaymentService(PaymentService):
             DuplicatedPaymentError: When a duplicate payment is attempted
         """
         try:
-            charge = stripe.PaymentIntent.create(
-                amount=order.total,
-                currency=settings.CURRENCY,
-                customer=order.owner.customer.customer_id,
-                payment_method=payment_method_id,
-                confirm=confirm,
-                idempotency_key=idempotency_key,
-                description=f"Payment for order #{order.id}"
-            )
+            payment_intent_data = {
+                "amount": order.total,
+                "currency": settings.CURRENCY,
+                "customer": order.owner.payment_details.customer_id,
+                "confirm": confirm,
+                "idempotency_key": idempotency_key,
+                "customer": order.owner.payment_details.customer_id,
+                "description": f"Payment for order #{order.id}",
+            }
+
+            if payment_method_id is not None:
+                payment_intent_data["payment_method"] = payment_method_id
+
+            charge = stripe.PaymentIntent.create(**payment_intent_data)
             stripe_status = charge.status
             status = self._resolve_status(stripe_status)
 
@@ -189,7 +196,8 @@ class StripePaymentService(PaymentService):
         except stripe.error.IdempotencyError as e:
             print(e)
             raise DuplicatedPaymentError()
-        except Exception:
+        except Exception as e:
+            print(e)
             raise PaymentFailure()
         
     def create_payment_details(self, user) -> PaymentDetails:

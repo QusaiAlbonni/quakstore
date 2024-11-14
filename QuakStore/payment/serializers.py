@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Payment, PaymentDetails
 
 class PaymentMethodInputSerializer(serializers.Serializer):
-    payment_method_id = serializers.CharField(max_length=255, required=True)
+    payment_method_id = serializers.CharField(max_length=255, required=False)
     
 class PaymentSerializer(serializers.ModelSerializer):
     

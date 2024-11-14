@@ -40,10 +40,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         self.payment_service = payment_service
     
     def get_queryset(self):
-        queryset = self.request.user.orders
+        queryset = self.request.user.orders.prefetch_related('payments')
         if self.action == 'list':
             return queryset.all()
-        return queryset.prefetch_related(Prefetch('items', queryset=OrderItem.objects.select_related('product')))
+        return queryset.prefetch_related(Prefetch('items', queryset=OrderItem.objects.select_related('product')), 'payments')
     
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -65,7 +65,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             user = request.user
             payment_serializer = PaymentMethodInputSerializer(data=request.data)
             payment_serializer.is_valid(raise_exception=True)
-            method_id = payment_serializer.validated_data['payment_method_id']
+            method_id = payment_serializer.validated_data.get('payment_method_id', None)
             cart_items = CartItem.objects.filter(user=user).order_by('product__id').select_related('product').select_for_update(of=('product',))
 
             if not len(cart_items):
