@@ -1,11 +1,17 @@
+from django.db import transaction
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .serializers import CartItemSerializer, CartItem, Product, CartItemUpdateSerializer, CartItemCreateSerializer
+from .serializers import CartItemSerializer, CartItem, Product, CartItemUpdateSerializer, CartItemCreateSerializer, CartItemBulkSerializer, CartBulkSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.serializers import ValidationError
 from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.decorators import action
+from rest_framework.request import Request
+
+from django.utils.translation import gettext_lazy as _
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -56,3 +62,36 @@ class CartItemViewSet(viewsets.ModelViewSet):
         if not kwargs.get('partial', False):
             raise MethodNotAllowed('PUT')
         return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        request_body=CartBulkSerializer,
+        method='patch',
+        responses={
+            '200': 'updated',
+            '400': 'invalid input',
+        }
+    )
+    @action(methods=['patch'], detail=False)
+    def bulk_update(self, request: Request):
+        items_serializer = CartBulkSerializer(data=request.data)
+        items_serializer.is_valid(raise_exception=True)
+        
+        data = items_serializer.data
+        
+        ids = [item['id'] for item in data['items']]
+        input_items: dict[dict] = {item.pop('id'): item for item in data['items']}
+        
+        items= CartItem.objects.filter(id__in= ids, user= request.user).select_related('product').all()
+        
+        for item in items:
+            quantity = input_items[item.id]['quantity']
+            if quantity > item.product.stock:
+                raise ValidationError({item.id: [_("Quantity higher than available stock")]})
+            item.quantity = quantity
+        
+        CartItem.objects.bulk_update(items, ['quantity'])
+        
+        return Response(status=status.HTTP_200_OK)
+            
+        
+        

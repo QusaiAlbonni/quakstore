@@ -28,7 +28,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         user = self.request.user if self.request.user.is_authenticated else None
         
         return Review.objects\
-            .select_related('user') \
+            .select_related('user', 'user__payment_details', 'product', 'product__category') \
             .filter(product= product) \
             .annotate(
                 is_user_review= Case(

@@ -13,11 +13,12 @@ class UserSerializer(DjoserUserSerializer):
     class Meta(DjoserUserSerializer.Meta):
         fields = DjoserUserSerializer.Meta.fields + ('email', 'avatar', 'payment_details')
         
-class PublicUserSerializer(UserSerializer):
-    def __init__(self, instance=None, data=empty, **kwargs):
+class PublicUserSerializer(DjoserUserSerializer):
+    def __init__(self, instance=None, data=..., **kwargs):
         super().__init__(instance, data, **kwargs)
         self.fields.pop('email')
-        self.fields.pop('id')
+    class Meta(DjoserUserSerializer.Meta):
+        fields = DjoserUserSerializer.Meta.fields + ('avatar',)
 
 class TokenSerializer(DjoserTokenSerializer):
     user = UserSerializer(read_only=True)

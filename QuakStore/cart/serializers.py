@@ -84,7 +84,17 @@ class CartItemUpdateSerializer(serializers.ModelSerializer):
         product= self.instance.product
         quantity= attrs.get('quantity', 0)
         
-        if quantity > (product.stock + self.instance.quantity):
+        if quantity > product.stock:
             raise ValidationError({'product': [_("Quantity higher than available stock") if product.stock > 0 else _("out of stock")]})
         
         return super().validate(attrs)
+
+class CartItemBulkSerializer(serializers.Serializer):
+    id = serializers.IntegerField(min_value=1)
+    quantity= serializers.IntegerField(min_value=1, max_value=1000)
+    
+class CartBulkSerializer(serializers.Serializer):
+    items = serializers.ListField(
+        child= CartItemBulkSerializer(),
+        allow_empty=False
+    )
