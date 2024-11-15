@@ -43,6 +43,9 @@ class PaymentService(Protocol):
         
     def create_payment_details(self, user) -> PaymentDetails:
         ...
+    
+    def cancel_payment_intent(self, payment_intent) -> None:
+        ...
 
 
 class StripePaymentService(PaymentService):
@@ -203,6 +206,9 @@ class StripePaymentService(PaymentService):
     def create_payment_details(self, user) -> PaymentDetails:
         customer = self._create_customer(user)
         return PaymentDetails.objects.create(user= user, customer_id= customer.id)
+    
+    def cancel_payment_intent(self, payment_intent) -> None:
+        stripe.PaymentIntent.cancel(intent=payment_intent)
 
     def _verify_payment_method_ownership(self, payment_method_id: str, user) -> bool:
         try:

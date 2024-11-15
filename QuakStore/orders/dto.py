@@ -7,6 +7,8 @@ from collections.abc import Sequence
 from .models import Order, User, OrderItem, Product
 
 from django.db.models import F
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 
 @dataclass(frozen=True)
@@ -82,4 +84,26 @@ class OrderAssembler:
             ).delete()
             print(cart_items_to_remove[0])
         return OrderItem.objects.bulk_create(items)
+    
+    def restock_from_order(self, order: Order) -> int:
+        items = OrderItem.objects.filter(order=order).select_related('product').all()
+        products_to_restock = []
+        for order_item in items:
+            product = order_item.product
+            product.stock += order_item.quantity
+            products_to_restock.append(product)
+        
+        return Product.objects.bulk_update(products_to_restock, ['stock'])
+    
+    def cancel(self, order: Order):
+        if order.state not in order.cancellable_states:
+            raise ValidationError("The Order cannot be cancelled")
+        
+        self.restock_from_order(order)
+        
+        order.cancel_order()
+
+        return order
+        
+        
     

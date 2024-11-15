@@ -150,6 +150,4 @@ def handle_payment_intent_failed(payment_intent):
     payment.save()
 
 def handle_payment_intent_canceled(payment_intent):
-    print('cancel')
-    order = Order.objects.filter(payment_intent=payment_intent.id).first()
-    order.cancel_order()
+    pass

@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError as DjValidationError
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, MethodNotAllowed
 from rest_framework.decorators import action
+from rest_framework import status
 
 from payment.serializers import PaymentMethodInputSerializer
 from payment.services import PaymentService, StripePaymentService, PaymentState
@@ -98,6 +100,22 @@ class OrderViewSet(viewsets.ModelViewSet):
             "payment_state": "unconfirmed",
         }
         return Response(response_data)
+    
+    @action(methods=['patch'], detail=True)
+    def cancel(self, request: Request, *args, **kwargs):
+        instance: Order = self.get_object()
+        with transaction.atomic():
+            order_service = OrderAssembler()
+            try:
+                order_service.cancel(instance)
+            except DjValidationError as e:
+                raise ValidationError({"non_field_errors": [_("Order Cannot be cancelled")]})
+            self.payment_service.cancel_payment_intent(instance.payment_intent)
+
+        serializer = OrderSerializer(instance)
+        
+        return Response(serializer.data, status= status.HTTP_200_OK)
+        
                 
     def update(self, request, *args, **kwargs):
         raise MethodNotAllowed('PUT')

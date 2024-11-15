@@ -35,12 +35,17 @@ class Order(models.Model):
         CANCELLED = 'cancelled', 'Cancelled'
         COMPLETED = 'completed', 'Completed'
 
+    cancellable_states = [Status.PENDING]
+    
     owner = models.ForeignKey(User, verbose_name=_(
         "Owner"), related_name='orders', on_delete=models.CASCADE)
 
     total = models.PositiveBigIntegerField()
-    state = models.CharField(choices=Status.choices,
-                             default=Status.PENDING, max_length=63)
+    state = models.CharField(
+        choices=Status.choices,
+        default=Status.PENDING,
+        max_length=63
+    )
 
     items = models.ManyToManyField(
         Product,
@@ -67,24 +72,8 @@ class Order(models.Model):
         return reverse("orders-detail", kwargs={"id": self.pk})
 
     def cancel_order(self):
-        """
-        When an order is cancelled its state is transitioned to CANCELLED 
-        and stock of products ordered in this order is returned to its original number
-        Note: products already in cancelled or completed state cannot be cancelled
-        """
-        if self.state in [self.Status.CANCELLED, self.Status.COMPLETED]:
-            raise ValueError(
-                _("Cannot cancel an order that is already cancelled or completed."))
-
-        with transaction.atomic(): 
-            items = OrderItem.objects.filter(order=self).all()
-            for order_item in items:
-                product = order_item.product
-                product.stock += order_item.quantity
-                product.save()
-
-            self.state = self.Status.CANCELLED
-            self.save()
+        self.state = self.Status.CANCELLED
+        self.save()
 
 
 class OrderItem(models.Model):
