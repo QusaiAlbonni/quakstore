@@ -16,4 +16,4 @@ class User(AbstractUser):
     avatar= models.ImageField(_("Profile Avatar"), upload_to='uploads/avatars/', null=True, blank=True) 
     
     def clear_cart(self):
-        self.items.remove()
+        self.items.clear()

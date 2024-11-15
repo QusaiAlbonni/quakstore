@@ -8,9 +8,7 @@ import stripe
 @receiver(post_save, sender=User)
 def create_payment_details(sender, instance: User, created: bool, *args, **kwargs):
     if not created:
-        print('dsa')
         return
-    print('adsads')
     payment_service = StripePaymentService()    
     payment_service.create_payment_details(instance)
     
