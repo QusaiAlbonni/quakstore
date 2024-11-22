@@ -86,7 +86,10 @@ class CartItemViewSet(viewsets.ModelViewSet):
         for item in items:
             quantity = input_items[item.id]['quantity']
             if quantity > item.product.stock:
-                raise ValidationError({item.id: [_("Quantity higher than available stock")]})
+                raise ValidationError(
+                    {'products' : {item.id: [_("Quantity higher than available stock")]},
+                    'non_field_errors': f"Seleceted Quantity for Product {item.product.name} is higher than stock"}
+                )
             item.quantity = quantity
         
         CartItem.objects.bulk_update(items, ['quantity'])
