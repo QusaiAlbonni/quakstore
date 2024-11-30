@@ -37,12 +37,12 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
     pagination_class = ProductPagination
     serializer_class = ProductSerializer
     filter_backends = [
-        django_filters.rest_framework.DjangoFilterBackend, filters.SearchFilter
+        django_filters.rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter
     ]
     filterset_fields = ['category', 'stock']
     search_fields = ['@name', '@description', '@category__name']
-    ordering_fields = '__all__'
-    
+    ordering_fields = ['rating_count', 'order_count', 'date_added', 'date_modified', 'price', 'stock']
+
     cache_timeout = 60 * 15
     
     def get_queryset(self):
@@ -50,7 +50,11 @@ class LatestProductsList(viewsets.GenericViewSet, mixins.ListModelMixin):
         .select_related('discount', 'category') \
         .prefetch_related('images')
         
-        queryset= queryset.annotate(avg_rating=Cast(Avg('reviews__rating'), DecimalField(max_digits=5, decimal_places=2)), rating_count= Count('reviews')).cache()
+        queryset= queryset.annotate(
+            avg_rating=Cast(Avg('reviews__rating'),DecimalField(max_digits=5, decimal_places=2)),\
+            rating_count= Count('reviews'),\
+            order_count= Count('orders')
+            ).cache()
                 
         return queryset.order_by('-date_added').all()
     

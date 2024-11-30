@@ -66,7 +66,7 @@ class Order(models.Model):
         indexes = [
             models.Index(fields=['payment_intent']),
         ]
-        ordering = ('date_added',)
+        ordering = ('-date_added',)
 
     def get_absolute_url(self):
         return reverse("orders-detail", kwargs={"id": self.pk})
