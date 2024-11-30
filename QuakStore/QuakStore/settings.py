@@ -124,10 +124,7 @@ CACHES = {
     'default': env.cache()
 }
 CACHEOPS = {
-    'product.Product': {
-        'ops': [],
-        'timeout': 60 * 15 
-    }
+
 }
 CACHEOPS_REDIS = env("CACHE_URL")
 
