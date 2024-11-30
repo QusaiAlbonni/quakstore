@@ -3,13 +3,11 @@ from rest_framework.fields import empty
 from payment.serializers import PaymentDetailsSerializer
 
 class UserCreateSerializer(DjoserCreateSerializer):
-    
     class Meta(DjoserCreateSerializer.Meta):
         fields = DjoserCreateSerializer.Meta.fields + ('email', 'avatar')
         
 class UserSerializer(DjoserUserSerializer):
     payment_details = PaymentDetailsSerializer(read_only=True)
-    
     class Meta(DjoserUserSerializer.Meta):
         fields = DjoserUserSerializer.Meta.fields + ('email', 'avatar', 'payment_details')
         
